@@ -32,9 +32,9 @@ namespace Box2DSharp.Common
 
         public static readonly FP Epsilon = FP.EN8;
 
-        public static readonly FP MaxValue = new FP(MAX_VALUE);
+        public static readonly FP MaxValue = new FP(R_MAX_VALUE);
 
-        public static readonly FP MinValue = new FP(MIN_VALUE);
+        public static readonly FP MinValue = new FP(R_MIN_VALUE);
 
         public static readonly FP One = new FP(ONE);
 
@@ -43,9 +43,9 @@ namespace Box2DSharp.Common
         /// <summary>
         /// The value of Pi
         /// </summary>
-        public static readonly FP Pi = new FP(PI);
+        public static readonly FP Pi = new FP(R_PI);
 
-        public static readonly FP PiOver2 = new FP(PI_OVER_2);
+        public static readonly FP PiOver2 = new FP(R_PI_OVER_2);
 
         public static readonly FP PiTimes2 = new FP(PI_TIMES_2);
 
@@ -61,37 +61,37 @@ namespace Box2DSharp.Common
 
         public static readonly FP Log2Min = new FP(LOG2MIN);
 
-        public static readonly FP Ln2 = new FP(LN2);
+        public static readonly FP Ln2 = new FP(R_LN2);
 
-        public static readonly FP e = new FP(E);
+        public static readonly FP e = new FP(R_E);
 
         public static readonly FP LutInterval = (FP)(LUT_SIZE - 1) / PiOver2;
 
-        public const long MAX_VALUE = long.MaxValue;
+        public const long R_MAX_VALUE = long.MaxValue;
 
-        public const long MIN_VALUE = long.MinValue;
+        public const long R_MIN_VALUE = long.MinValue;
 
         public const int NUM_BITS = 64;
 
-        public const int FRACTIONAL_PLACES = 32;
+        public const int R_FRACTIONAL_PLACES = 32;
 
-        public const long ONE = 1L << FRACTIONAL_PLACES;
+        public const long ONE = 1L << R_FRACTIONAL_PLACES;
 
         public const long PI_TIMES_2 = 0x6487ED511;
 
-        public const long PI = 0x3243F6A88;
+        public const long R_PI = 0x3243F6A88;
 
-        public const long PI_OVER_2 = 0x1921FB544;
+        public const long R_PI_OVER_2 = 0x1921FB544;
 
-        public const long LN2 = 0xB17217F7;
+        public const long R_LN2 = 0xB17217F7;
 
-        public const long E = 11674931554;
+        public const long R_E = 11674931554;
 
         public const long LOG2MAX = 0x1F00000000;
 
         public const long LOG2MIN = -0x2000000000;
 
-        public const int LUT_SIZE = (int)(PI_OVER_2 >> 15);
+        public const int LUT_SIZE = (int)(R_PI_OVER_2 >> 15);
 
         /// <summary>
         /// Returns a number indicating the sign of a Fix64 number.
@@ -121,7 +121,7 @@ namespace Box2DSharp.Common
         /// </summary>
         public static FP Abs(FP value)
         {
-            if (value.m_rawValue == MIN_VALUE)
+            if (value.m_rawValue == R_MIN_VALUE)
             {
                 return MaxValue;
             }
@@ -201,9 +201,9 @@ namespace Box2DSharp.Common
             var sum = xl + yl;
 
             // if signs of operands are equal and signs of sum and x are different
-            if (((~(xl ^ yl) & (xl ^ sum)) & MIN_VALUE) != 0)
+            if (((~(xl ^ yl) & (xl ^ sum)) & R_MIN_VALUE) != 0)
             {
-                sum = xl > 0 ? MAX_VALUE : MIN_VALUE;
+                sum = xl > 0 ? R_MAX_VALUE : R_MIN_VALUE;
             }
 
             return new FP(sum);
@@ -228,9 +228,9 @@ namespace Box2DSharp.Common
             var diff = xl - yl;
 
             // if signs of operands are different and signs of sum and x are different
-            if ((((xl ^ yl) & (xl ^ diff)) & MIN_VALUE) != 0)
+            if ((((xl ^ yl) & (xl ^ diff)) & R_MIN_VALUE) != 0)
             {
-                diff = xl < 0 ? MIN_VALUE : MAX_VALUE;
+                diff = xl < 0 ? R_MIN_VALUE : R_MAX_VALUE;
             }
 
             return new FP(diff);
@@ -259,7 +259,7 @@ namespace Box2DSharp.Common
             var sum = x + y;
 
             // x + y overflows if sign(x) ^ sign(y) != sign(sum)
-            overflow |= ((x ^ y ^ sum) & MIN_VALUE) != 0;
+            overflow |= ((x ^ y ^ sum) & R_MIN_VALUE) != 0;
             return sum;
         }
 
@@ -269,26 +269,26 @@ namespace Box2DSharp.Common
             var yl = y.m_rawValue;
 
             var xlo = (ulong)(xl & 0x00000000FFFFFFFF);
-            var xhi = xl >> FRACTIONAL_PLACES;
+            var xhi = xl >> R_FRACTIONAL_PLACES;
             var ylo = (ulong)(yl & 0x00000000FFFFFFFF);
-            var yhi = yl >> FRACTIONAL_PLACES;
+            var yhi = yl >> R_FRACTIONAL_PLACES;
 
             var lolo = xlo * ylo;
             var lohi = (long)xlo * yhi;
             var hilo = xhi * (long)ylo;
             var hihi = xhi * yhi;
 
-            var loResult = lolo >> FRACTIONAL_PLACES;
+            var loResult = lolo >> R_FRACTIONAL_PLACES;
             var midResult1 = lohi;
             var midResult2 = hilo;
-            var hiResult = hihi << FRACTIONAL_PLACES;
+            var hiResult = hihi << R_FRACTIONAL_PLACES;
 
             bool overflow = false;
             var sum = AddOverflowHelper((long)loResult, midResult1, ref overflow);
             sum = AddOverflowHelper(sum, midResult2, ref overflow);
             sum = AddOverflowHelper(sum, hiResult, ref overflow);
 
-            bool opSignsEqual = ((xl ^ yl) & MIN_VALUE) == 0;
+            bool opSignsEqual = ((xl ^ yl) & R_MIN_VALUE) == 0;
 
             // if signs of operands are equal and sign of result is negative,
             // then multiplication overflowed positively
@@ -310,7 +310,7 @@ namespace Box2DSharp.Common
 
             // if the top 32 bits of hihi (unused in the result) are neither all 0s or 1s,
             // then this means the result overflowed.
-            var topCarry = hihi >> FRACTIONAL_PLACES;
+            var topCarry = hihi >> R_FRACTIONAL_PLACES;
             if (topCarry != 0 && topCarry != -1 /*&& xl != -17 && yl != -17*/)
             {
                 return opSignsEqual ? MaxValue : MinValue;
@@ -361,19 +361,19 @@ namespace Box2DSharp.Common
             var yl = y.m_rawValue;
 
             var xlo = (ulong)(xl & 0x00000000FFFFFFFF);
-            var xhi = xl >> FRACTIONAL_PLACES;
+            var xhi = xl >> R_FRACTIONAL_PLACES;
             var ylo = (ulong)(yl & 0x00000000FFFFFFFF);
-            var yhi = yl >> FRACTIONAL_PLACES;
+            var yhi = yl >> R_FRACTIONAL_PLACES;
 
             var lolo = xlo * ylo;
             var lohi = (long)xlo * yhi;
             var hilo = xhi * (long)ylo;
             var hihi = xhi * yhi;
 
-            var loResult = lolo >> FRACTIONAL_PLACES;
+            var loResult = lolo >> R_FRACTIONAL_PLACES;
             var midResult1 = lohi;
             var midResult2 = hilo;
-            var hiResult = hihi << FRACTIONAL_PLACES;
+            var hiResult = hihi << R_FRACTIONAL_PLACES;
 
             var sum = (long)loResult + midResult1 + midResult2 + hiResult;
             return new FP(sum);
@@ -438,7 +438,7 @@ namespace Box2DSharp.Common
                 // Detect overflow
                 if ((div & ~(0xFFFFFFFFFFFFFFFF >> bitPos)) != 0)
                 {
-                    return ((xl ^ yl) & MIN_VALUE) == 0 ? MaxValue : MinValue;
+                    return ((xl ^ yl) & R_MIN_VALUE) == 0 ? MaxValue : MinValue;
                 }
 
                 remainder <<= 1;
@@ -448,7 +448,7 @@ namespace Box2DSharp.Common
             // rounding
             ++quotient;
             var result = (long)(quotient >> 1);
-            if (((xl ^ yl) & MIN_VALUE) != 0)
+            if (((xl ^ yl) & R_MIN_VALUE) != 0)
             {
                 result = -result;
             }
@@ -459,7 +459,7 @@ namespace Box2DSharp.Common
         public static FP operator %(FP x, FP y)
         {
             return new FP(
-                x.m_rawValue == MIN_VALUE & y.m_rawValue == -1 ? 0 : x.m_rawValue % y.m_rawValue);
+                x.m_rawValue == R_MIN_VALUE & y.m_rawValue == -1 ? 0 : x.m_rawValue % y.m_rawValue);
         }
 
         /// <summary>
@@ -473,7 +473,7 @@ namespace Box2DSharp.Common
 
         public static FP operator -(FP x)
         {
-            return x.m_rawValue == MIN_VALUE ? MaxValue : new FP(-x.m_rawValue);
+            return x.m_rawValue == R_MIN_VALUE ? MaxValue : new FP(-x.m_rawValue);
         }
 
         public static bool operator ==(FP x, FP y)
@@ -588,7 +588,7 @@ namespace Box2DSharp.Common
             // algorithm (C. S. Turner,  "A Fast Binary Logarithm Algorithm", IEEE Signal
             //     Processing Mag., pp. 124,140, Sep. 2010.)
 
-            long b = 1U << (FRACTIONAL_PLACES - 1);
+            long b = 1U << (R_FRACTIONAL_PLACES - 1);
             long y = 0;
 
             long rawX = x.m_rawValue;
@@ -606,7 +606,7 @@ namespace Box2DSharp.Common
 
             var z = new FP(rawX);
 
-            for (int i = 0; i < FRACTIONAL_PLACES; i++)
+            for (int i = 0; i < R_FRACTIONAL_PLACES; i++)
             {
                 z = FastMul(z, z);
                 if (z.m_rawValue >= (ONE << 1))
@@ -819,22 +819,22 @@ namespace Box2DSharp.Common
 
             // The LUT contains values for 0 - PiOver2; every other value must be obtained by
             // vertical or horizontal mirroring
-            flipVertical = clamped2Pi >= PI;
+            flipVertical = clamped2Pi >= R_PI;
 
             // obtain (angle % PI) from (angle % 2PI) - much faster than doing another modulo
             var clampedPi = clamped2Pi;
-            while (clampedPi >= PI)
+            while (clampedPi >= R_PI)
             {
-                clampedPi -= PI;
+                clampedPi -= R_PI;
             }
 
-            flipHorizontal = clampedPi >= PI_OVER_2;
+            flipHorizontal = clampedPi >= R_PI_OVER_2;
 
             // obtain (angle % PI_OVER_2) from (angle % PI) - much faster than doing another modulo
             var clampedPiOver2 = clampedPi;
-            if (clampedPiOver2 >= PI_OVER_2)
+            if (clampedPiOver2 >= R_PI_OVER_2)
             {
-                clampedPiOver2 -= PI_OVER_2;
+                clampedPiOver2 -= R_PI_OVER_2;
             }
 
             return clampedPiOver2;
@@ -847,7 +847,7 @@ namespace Box2DSharp.Common
         public static FP SlowCos(FP x)
         {
             var xl = x.m_rawValue;
-            var rawAngle = xl + (xl > 0 ? -PI - PI_OVER_2 : PI_OVER_2);
+            var rawAngle = xl + (xl > 0 ? -R_PI - R_PI_OVER_2 : R_PI_OVER_2);
             return Sin(new FP(rawAngle));
         }
 
@@ -858,7 +858,7 @@ namespace Box2DSharp.Common
         public static FP Cos(FP x)
         {
             var xl = x.m_rawValue;
-            var rawAngle = xl + (xl > 0 ? -PI - PI_OVER_2 : PI_OVER_2);
+            var rawAngle = xl + (xl > 0 ? -R_PI - R_PI_OVER_2 : R_PI_OVER_2);
             return Sin(new FP(rawAngle));
         }
 
@@ -870,7 +870,7 @@ namespace Box2DSharp.Common
         /// </remarks>
         public static FP Tan(FP x)
         {
-            var clampedPi = x.m_rawValue % PI;
+            var clampedPi = x.m_rawValue % R_PI;
             var flip = false;
             if (clampedPi < 0)
             {
@@ -878,10 +878,10 @@ namespace Box2DSharp.Common
                 flip = true;
             }
 
-            if (clampedPi > PI_OVER_2)
+            if (clampedPi > R_PI_OVER_2)
             {
                 flip = !flip;
-                clampedPi = PI_OVER_2 - (clampedPi - PI_OVER_2);
+                clampedPi = R_PI_OVER_2 - (clampedPi - R_PI_OVER_2);
             }
 
             var clamped = new FP(clampedPi);
@@ -1045,7 +1045,7 @@ namespace Box2DSharp.Common
 
         public static explicit operator long(FP value)
         {
-            return value.m_rawValue >> FRACTIONAL_PLACES;
+            return value.m_rawValue >> R_FRACTIONAL_PLACES;
         }
 
         public static implicit operator FP(float value)

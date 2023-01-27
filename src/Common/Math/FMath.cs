@@ -399,7 +399,7 @@ namespace Box2DSharp.Common
             // algorithm (C. S. Turner,  "A Fast Binary Logarithm Algorithm", IEEE Signal
             //     Processing Mag., pp. 124,140, Sep. 2010.)
 
-            long b = 1U << (FP.FRACTIONAL_PLACES - 1);
+            long b = 1U << (FP.R_FRACTIONAL_PLACES - 1);
             long y = 0;
 
             long rawX = x.RawValue;
@@ -417,7 +417,7 @@ namespace Box2DSharp.Common
 
             var z = FP.FromRaw(rawX);
 
-            for (int i = 0; i < FP.FRACTIONAL_PLACES; i++)
+            for (int i = 0; i < FP.R_FRACTIONAL_PLACES; i++)
             {
                 z = FP.FastMul(z, z);
                 if (z.RawValue >= (FP.ONE << 1))
